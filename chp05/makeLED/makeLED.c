@@ -18,35 +18,33 @@
 
 #define LED3_PATH "/sys/class/leds/beaglebone:green:usr3"
 
+void turnOffLED();
+void turnOnLED();
+void flashLED(char* delay);
 void writeLED(char filename[], char value[]);
 void removeTrigger();
+
+#define INVALID_USAGE 2
 
 int main(int argc, char* argv[]){
    if(argc!=2){
 	printf("Usage is makeLEDC and one of:\n");
         printf("   on, off, flash or status\n");
 	printf(" e.g. makeLED flash\n");
-        return 2;
+        return INVALID_USAGE;
    }
    printf("Starting the makeLED program\n");
    printf("The current LED Path is: " LED3_PATH "\n");
 
    // select whether command is on, off, flash or status
    if(strcmp(argv[1],"on")==0){
-        printf("Turning the LED on\n");
-	removeTrigger();
-        writeLED("/brightness", "1");
+	   turnOnLED();
    }
    else if (strcmp(argv[1],"off")==0){
-        printf("Turning the LED off\n");
-	removeTrigger();
-        writeLED("/brightness", "0");
+	   turnOffLED();
    }
    else if (strcmp(argv[1],"flash")==0){
-        printf("Flashing the LED\n");
-        writeLED("/trigger", "timer");
-        writeLED("/delay_on", "50");
-        writeLED("/delay_off", "50");
+	   flashLED("50");
    }
    else if (strcmp(argv[1],"status")==0){
       FILE* fp;   // see writeLED function below for description
@@ -77,5 +75,22 @@ void writeLED(char filename[], char value[]){
 
 void removeTrigger(){
   writeLED("/trigger", "none");
+}
+
+void turnOffLED() {
+        printf("Turning the LED off\n");
+	removeTrigger();
+        writeLED("/brightness", "0");
+}
+void turnOnLED() {
+        printf("Turning the LED on\n");
+	removeTrigger();
+        writeLED("/brightness", "1");
+}
+void flashLED(char* delay) {
+        printf("Flashing the LED\n");
+        writeLED("/trigger", "timer");
+        writeLED("/delay_on", delay);
+        writeLED("/delay_off", delay);
 }
 

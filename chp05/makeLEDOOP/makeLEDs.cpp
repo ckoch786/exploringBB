@@ -16,6 +16,9 @@
 #include<fstream>
 #include<string>
 #include<sstream>
+
+#include <unistd.h>
+
 using namespace std;
 
 #define LED_PATH "/sys/class/leds/beaglebone:green:usr"
@@ -85,11 +88,15 @@ LED::~LED(){
    cout << "destroying the LED with path: " << path << endl;
 }
 
+#define INVALID_USAGE 2
+void pong(LED leds[4]);
+
 int main(int argc, char* argv[]){
    if(argc!=2){
 	cout << "Usage is makeLEDs <command>" << endl;
         cout << "   command is one of: on, off, flash or status" << endl;
 	cout << " e.g. makeLEDs flash" << endl;
+	return INVALID_USAGE;
    }
    cout << "Starting the makeLEDs program" << endl;
    string cmd(argv[1]);
@@ -99,8 +106,56 @@ int main(int argc, char* argv[]){
       else if(cmd=="off")leds[i].turnOff();
       else if(cmd=="flash")leds[i].flash("100"); //default is "50"
       else if(cmd=="status")leds[i].outputState();
-      else{ cout << "Invalid command!" << endl; }
+      else if(cmd=="pong")pong(leds);
+      else{ 
+	      cout << "Invalid command!" << endl; 
+	      return INVALID_USAGE;
+      }
    }
    cout << "Finished the makeLEDs program" << endl;
    return 0;
 }
+
+int display[3][4] = {
+	{1, 1, 0, 0},
+	{0, 1, 1, 0},
+	{0, 0, 1, 1}
+};
+
+
+void pong(LED l[4]) {
+	LED user1 = l[0];
+	LED user2 = l[1];
+	LED user3 = l[2];
+	LED user4 = l[3];
+
+	// TODO write a sleep function that utilizes the hardware instead.
+	while(1) {
+		for (int i=0; i < 3; i++) {
+			int* d = display[i];
+			for (int j=0; j < 4; j++) {
+				if (d[j] == 0) {
+					l[j].turnOff();
+					sleep(50);
+				} else if (d[j] == 1) {
+					l[j].flash("100");
+					sleep(50);
+				} else {
+				       	std::cout << "Invalid display option." << std::endl; 
+				}
+			}
+
+		}
+//		user3.turnOff();
+//		user1.flash("100");
+//		user2.flash("100");
+//		sleep(50);
+//		user1.turnOff();
+//		user2.flash("100");
+//		sleep(50);
+//		user2.flash("100");
+//		user3.flash("100");
+//		sleep(50);
+	}
+}
+
